@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Feeding Schedules{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <div><h1 class="text-2xl font-bold text-gray-900">Feeding Schedules</h1></div>
+        <a href="{% url 'notifications:schedule_create' %}" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium py-2 px-4 rounded-lg inline-flex items-center gap-1">+ Add Schedule</a>
+    </div>
+    {% if schedules %}
+    <div class="space-y-3">
+        {% for sch in schedules %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <h3 class="font-semibold text-gray-900">🌾 {{ sch.feed_type }} - {{ sch.quantity }}</h3>
+                <p class="text-sm text-gray-500">
+                    {% if sch.animal %}{{ sch.animal.tag_id }}{% else %}All Animals{% endif %} on {{ sch.farm.name }}
+                    {% if sch.time %}at {{ sch.time|time:"H:i" }}{% endif %}
+                    | {{ sch.get_frequency_display }}
+                </p>
+            </div>
+            <form method="post" action="{% url 'notifications:schedule_delete' pk=sch.pk %}" class="inline">{% csrf_token %}<button type="submit" class="text-red-600 hover:text-red-700 text-sm font-medium">Delete</button></form>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <span class="text-5xl block mb-4">📅</span><h3 class="text-lg font-semibold text-gray-700">No feeding schedules</h3>
+        <a href="{% url 'notifications:schedule_create' %}" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-5 rounded-lg inline-flex items-center gap-2 mt-4">Add Schedule</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

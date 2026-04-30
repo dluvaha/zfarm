@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-6"><h1 class="text-2xl font-bold text-gray-900">My Profile</h1><p class="text-gray-500 mt-1">Manage your account information</p></div>
+    <div class="card">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 pb-6 border-b border-gray-100">
+            <div class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center"><span class="text-3xl text-primary-700 font-bold">{{ farmer.first_name.0|default:farmer.username.0|upper }}</span></div>
+            <div class="flex-1">
+                <h2 class="text-xl font-semibold text-gray-900">{{ farmer.get_full_name|default:farmer.username }}</h2>
+                <p class="text-gray-500">{{ farmer.email }}</p>
+                <div class="flex gap-2 mt-2">
+                    {% if farmer.is_verified %}<span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Verified</span>{% else %}<span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">Unverified</span>{% endif %}
+                    {% if farmer.is_vet %}<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Veterinarian</span>{% endif %}
+                </div>
+            </div>
+            <a href="{% url 'accounts:profile_edit' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg text-sm inline-flex items-center gap-1">Edit Profile</a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {% for label, value in info_pairs %}
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">{{ label }}</p>
+                <p class="text-sm font-medium text-gray-900 mt-1">{{ value }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

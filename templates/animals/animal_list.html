@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Animals{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <div><h1 class="text-2xl font-bold text-gray-900">My Animals</h1><p class="text-gray-500 mt-1">{{ animals|length }} animals total</p></div>
+        <a href="{% url 'animals:animal_create' %}" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-5 rounded-lg inline-flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Add Animal
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+        <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <input type="text" name="search" value="{{ search }}" placeholder="Search tag or name..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+            <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+                <option value="">All Categories</option>
+                {% for cat in categories %}<option value="{{ cat.pk }}" {% if category_filter == cat.pk|slugify %}selected{% endif %}>{{ cat.icon }} {{ cat.name }}</option>{% endfor %}
+            </select>
+            <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+                <option value="">All Status</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="sick" {% if status_filter == 'sick' %}selected{% endif %}>Sick</option>
+                <option value="sold" {% if status_filter == 'sold' %}selected{% endif %}>Sold</option>
+                <option value="died" {% if status_filter == 'died' %}selected{% endif %}>Died</option>
+            </select>
+            <select name="farm" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+                <option value="">All Farms</option>
+                {% for f in farms %}<option value="{{ f.pk }}" {% if farm_filter == f.pk|slugify %}selected{% endif %}>{{ f.name }}</option>{% endfor %}
+            </select>
+            <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium py-2 px-4 rounded-lg">Filter</button>
+        </form>
+    </div>
+
+    {% if animals %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">Tag ID</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">Category</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3 hidden sm:table-cell">Breed</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3 hidden md:table-cell">Gender</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3 hidden lg:table-cell">Weight</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">Status</th>
+                        <th class="text-right text-xs font-medium text-gray-500 uppercase px-4 py-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for animal in animals %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3">
+                            <a href="{% url 'animals:animal_detail' pk=animal.pk %}" class="font-medium text-primary-700 hover:text-primary-800">{{ animal.tag_id }}</a>
+                            {% if animal.name %}<br><span class="text-sm text-gray-500">{{ animal.name }}</span>{% endif %}
+                        </td>
+                        <td class="px-4 py-3"><span class="text-sm">{{ animal.category.icon }} {{ animal.category|default:"--" }}</span></td>
+                        <td class="px-4 py-3 hidden sm:table-cell text-sm text-gray-600">{{ animal.breed|default:"--" }}</td>
+                        <td class="px-4 py-3 hidden md:table-cell text-sm text-gray-600 capitalize">{{ animal.gender }}</td>
+                        <td class="px-4 py-3 hidden lg:table-cell text-sm text-gray-600">{% if animal.weight %}{{ animal.weight }} kg{% else %}--{% endif %}</td>
+                        <td class="px-4 py-3">
+                            <span class="text-xs px-2 py-1 rounded-full {% if animal.status == 'active' %}bg-green-100 text-green-700{% elif animal.status == 'sick' %}bg-red-100 text-red-700{% elif animal.status == 'sold' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-700{% endif %} capitalize">{{ animal.status }}</span>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <a href="{% url 'animals:animal_detail' pk=animal.pk %}" class="text-primary-600 hover:text-primary-700 text-sm font-medium mr-2">View</a>
+                            <a href="{% url 'animals:animal_edit' pk=animal.pk %}" class="text-gray-600 hover:text-gray-800 text-sm font-medium">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <span class="text-5xl block mb-4">🐄</span>
+        <h3 class="text-lg font-semibold text-gray-700">No animals found</h3>
+        <p class="text-gray-500 mt-2 mb-4">Add your first animal to start tracking.</p>
+        <a href="{% url 'animals:animal_create' %}" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-5 rounded-lg inline-flex items-center gap-2">Add Animal</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Delete Animal{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+        <span class="text-5xl block mb-4">⚠️</span>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Delete Animal</h2>
+        <p class="text-gray-600 mb-6">Are you sure you want to delete <strong>{{ animal.tag_id }}</strong>? All records will be permanently removed.</p>
+        <form method="post" class="flex gap-3 justify-center">{% csrf_token %}
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-5 rounded-lg">Yes, Delete</button>
+            <a href="{% url 'animals:animal_detail' pk=animal.pk %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2.5 px-5 rounded-lg">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

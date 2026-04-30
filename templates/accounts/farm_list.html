@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}My Farms{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <div><h1 class="text-2xl font-bold text-gray-900">My Farms</h1><p class="text-gray-500 mt-1">Manage your farm profiles</p></div>
+        <a href="{% url 'accounts:farm_create' %}" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-5 rounded-lg inline-flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Add Farm
+        </a>
+    </div>
+    {% if farms %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for farm in farms %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">{{ farm.name }}</h3>
+                    <p class="text-sm text-gray-500 mt-1">{{ farm.location }}{% if farm.county %}, {{ farm.county }}{% endif %}</p>
+                </div>
+                <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full capitalize">{{ farm.get_livestock_type_display }}</span>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">{{ farm.description|truncatewords:20|default:"No description" }}</p>
+            <div class="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100 text-sm text-gray-500">
+                <span>{{ farm.animal_count }} animals</span>
+                {% if farm.size_acres %}<span>{{ farm.size_acres }} acres</span>{% endif %}
+            </div>
+            <div class="flex gap-2 mt-4">
+                <a href="{% url 'accounts:farm_detail' pk=farm.pk %}" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium py-2 px-4 rounded-lg inline-flex items-center gap-1">View</a>
+                <a href="{% url 'accounts:farm_edit' pk=farm.pk %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium py-2 px-4 rounded-lg inline-flex items-center gap-1">Edit</a>
+                <a href="{% url 'accounts:farm_delete' pk=farm.pk %}" class="text-red-600 hover:text-red-700 text-sm font-medium px-3 py-2 rounded-lg hover:bg-red-50">Delete</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <span class="text-5xl block mb-4">🌾</span>
+        <h3 class="text-lg font-semibold text-gray-700">No farms yet</h3>
+        <p class="text-gray-500 mt-2 mb-4">Create your first farm to start managing your livestock.</p>
+        <a href="{% url 'accounts:farm_create' %}" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-5 rounded-lg inline-flex items-center gap-2">Create Farm</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

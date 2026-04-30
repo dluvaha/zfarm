@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}My Listings{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <div><h1 class="text-2xl font-bold text-gray-900">My Listings</h1></div>
+        <a href="{% url 'marketplace:listing_create' %}" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium py-2 px-4 rounded-lg inline-flex items-center gap-1">+ New Listing</a>
+    </div>
+    {% if listings %}
+    <div class="space-y-3">
+        {% for listing in listings %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex-1">
+                <h3 class="font-semibold text-gray-900"><a href="{% url 'marketplace:listing_detail' pk=listing.pk %}" class="hover:text-primary-600">{{ listing.title }}</a></h3>
+                <p class="text-sm text-gray-500">KES {{ listing.price }} | {{ listing.get_category_display }} | {{ listing.created_at|date:"M d, Y" }}</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs px-2 py-1 rounded-full {% if listing.status == 'active' %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-700{% endif %} capitalize">{{ listing.status }}</span>
+                <span class="text-sm text-gray-500">{{ listing.inquiry_count }} inquiries</span>
+                <a href="{% url 'marketplace:listing_edit' pk=listing.pk %}" class="text-sm text-primary-600 hover:text-primary-700 font-medium">Edit</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <span class="text-5xl block mb-4">📋</span><h3 class="text-lg font-semibold text-gray-700">No listings yet</h3>
+        <a href="{% url 'marketplace:listing_create' %}" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-5 rounded-lg inline-flex items-center gap-2 mt-4">Create Listing</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

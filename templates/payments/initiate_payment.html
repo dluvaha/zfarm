@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Make Payment{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <div class="mb-6"><h1 class="text-2xl font-bold text-gray-900">Make Payment</h1><p class="text-gray-500 mt-1">Send M-Pesa STK Push request</p></div>
+    <div class="card">
+        <div class="flex items-center gap-3 p-4 bg-green-50 rounded-lg mb-6">
+            <span class="text-2xl">📱</span>
+            <div><p class="font-medium text-green-800">M-Pesa Payment</p><p class="text-sm text-green-600">You will receive an STK Push on your phone</p></div>
+        </div>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% for field in form %}
+            {% if field.name == 'reference_id' %}{{ field }}{% else %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<p class="mt-1 text-sm text-red-600">{% for e in field.errors %}{{ e }}{% endfor %}</p>{% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+            <div class="pt-2">
+                <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-sm">Send STK Push</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}{{ farm.name }}{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-sm text-gray-500 mb-1"><a href="{% url 'accounts:farm_list' %}" class="hover:text-primary-600">Farms</a><span>/</span><span>{{ farm.name }}</span></div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ farm.name }}</h1>
+            <p class="text-gray-500 mt-1">{{ farm.location }}{% if farm.county %}, {{ farm.county }}{% endif %}</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'accounts:farm_edit' pk=farm.pk %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium py-2 px-4 rounded-lg">Edit</a>
+            <a href="{% url 'animals:animal_create' %}" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium py-2 px-4 rounded-lg inline-flex items-center gap-1">+ Add Animal</a>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-center hover:shadow-md transition-shadow">
+            <p class="text-2xl font-bold text-primary-600">{{ farm.animal_count }}</p><p class="text-sm text-gray-500">Animals</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-center hover:shadow-md transition-shadow">
+            <p class="text-2xl font-bold text-yellow-600">{{ farm.size_acres|default:"--" }}</p><p class="text-sm text-gray-500">Acres</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-center hover:shadow-md transition-shadow">
+            <p class="text-2xl font-bold capitalize">{{ farm.get_livestock_type_display }}</p><p class="text-sm text-gray-500">Type</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-center hover:shadow-md transition-shadow">
+            <p class="text-2xl font-bold text-blue-600">{{ farm.active_listings }}</p><p class="text-sm text-gray-500">Listings</p>
+        </div>
+    </div>
+    {% if farm.description %}<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6"><h3 class="font-semibold text-gray-900 mb-2">About this Farm</h3><p class="text-gray-600">{{ farm.description }}</p></div>{% endif %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-gray-900">Animals</h3>
+            <a href="{% url 'animals:animal_list' %}" class="text-sm text-primary-600 hover:text-primary-700 font-medium">View All</a>
+        </div>
+        {% if animals %}
+        <div class="divide-y divide-gray-100">
+            {% for animal in animals %}
+            <a href="{% url 'animals:animal_detail' pk=animal.pk %}" class="flex items-center justify-between py-3 hover:bg-gray-50 px-2 -mx-2 rounded-lg">
+                <div><p class="font-medium text-gray-900">{{ animal.tag_id }} {% if animal.name %}- {{ animal.name }}{% endif %}</p><p class="text-sm text-gray-500">{{ animal.breed|default:"No breed" }} | {{ animal.gender|title }}</p></div>
+                <span class="text-xs px-2 py-1 rounded-full {% if animal.status == 'active' %}bg-green-100 text-green-700{% elif animal.status == 'sick' %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-700{% endif %} capitalize">{{ animal.status }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}<p class="text-gray-500 text-center py-8">No animals registered yet.</p>{% endif %}
+    </div>
+</div>
+{% endblock %}

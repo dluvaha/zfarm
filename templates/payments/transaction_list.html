@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Transactions{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <div><h1 class="text-2xl font-bold text-gray-900">Transactions</h1><p class="text-gray-500 mt-1">M-Pesa payment history</p></div>
+        <div class="flex gap-2">
+            <a href="{% url 'payments:finance_summary' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium py-2 px-4 rounded-lg">Finance Summary</a>
+            <a href="{% url 'payments:initiate_payment' %}" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium py-2 px-4 rounded-lg inline-flex items-center gap-1">+ Pay</a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+        <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {{ search_form.start_date }}
+            {{ search_form.end_date }}
+            {{ search_form.transaction_type }}
+            {{ search_form.status }}
+            {{ search_form.purpose }}
+            <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium py-2 px-4 rounded-lg">Search</button>
+        </form>
+    </div>
+
+    {% if transactions %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">Receipt</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">Type</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3 hidden sm:table-cell">Purpose</th>
+                        <th class="text-right text-xs font-medium text-gray-500 uppercase px-4 py-3">Amount</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">Status</th>
+                        <th class="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3 hidden md:table-cell">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for txn in transactions %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3"><a href="{% url 'payments:transaction_detail' pk=txn.pk %}" class="font-medium text-primary-700 hover:text-primary-800 text-sm">{{ txn.mpesa_receipt|default:"Pending..." }}</a></td>
+                        <td class="px-4 py-3"><span class="text-xs px-2 py-1 rounded-full {% if txn.is_expense %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">{{ txn.get_transaction_type_display }}</span></td>
+                        <td class="px-4 py-3 hidden sm:table-cell text-sm text-gray-600 capitalize">{{ txn.get_purpose_display|default:txn.purpose }}</td>
+                        <td class="px-4 py-3 text-right font-semibold {% if txn.is_expense %}text-red-600{% else %}text-green-600{% endif %}">KES {{ txn.amount }}</td>
+                        <td class="px-4 py-3"><span class="text-xs px-2 py-1 rounded-full {% if txn.status == 'success' %}bg-green-100 text-green-700{% elif txn.status == 'pending' %}bg-yellow-100 text-yellow-700{% else %}bg-red-100 text-red-700{% endif %} capitalize">{{ txn.status }}</span></td>
+                        <td class="px-4 py-3 hidden md:table-cell text-sm text-gray-500">{{ txn.created_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <span class="text-5xl block mb-4">💳</span>
+        <h3 class="text-lg font-semibold text-gray-700">No transactions yet</h3>
+        <p class="text-gray-500 mt-2 mb-4">Make your first M-Pesa payment to get started.</p>
+        <a href="{% url 'payments:initiate_payment' %}" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-5 rounded-lg inline-flex items-center gap-2">Make Payment</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

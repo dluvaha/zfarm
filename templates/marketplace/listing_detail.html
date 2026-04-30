@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}{{ listing.title }}{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-4"><div class="flex items-center gap-2 text-sm text-gray-500"><a href="{% url 'marketplace:listing_list' %}" class="hover:text-primary-600">Marketplace</a><span>/</span><span>{{ listing.title }}</span></div></div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6">
+            <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xs px-2 py-1 rounded-full bg-primary-100 text-primary-700 capitalize">{{ listing.get_category_display }}</span>
+                        {% if listing.animal %}<span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">{{ listing.animal.category }}</span>{% endif %}
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900">{{ listing.title }}</h1>
+                    <p class="text-gray-500 mt-1">📍 {{ listing.location }}{% if listing.county %}, {{ listing.county }}{% endif %} | 👁 {{ listing.views_count }} views</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-3xl font-bold text-primary-700">KES {{ listing.price }}</p>
+                    {% if listing.negotiable %}<p class="text-sm text-gray-500">Negotiable</p>{% endif %}
+                </div>
+            </div>
+            <div class="prose max-w-none text-gray-700 mb-6 whitespace-pre-wrap">{{ listing.description }}</div>
+            {% if listing.animal %}
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-gray-900 mb-2">Animal Details</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                    <div><span class="text-gray-500">Tag ID:</span> <strong>{{ listing.animal.tag_id }}</strong></div>
+                    <div><span class="text-gray-500">Breed:</span> <strong>{{ listing.animal.breed|default:"--" }}</strong></div>
+                    <div><span class="text-gray-500">Gender:</span> <strong class="capitalize">{{ listing.animal.gender }}</strong></div>
+                    <div><span class="text-gray-500">Status:</span> <strong class="capitalize">{{ listing.animal.status }}</strong></div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="text-sm text-gray-500 mb-6">Listed by <strong>{{ listing.seller.get_full_name|default:listing.seller.username }}</strong> on {{ listing.created_at|date:"M d, Y" }}</div>
+
+            {% if can_inquire %}
+            <div class="border-t border-gray-100 pt-6">
+                <h3 class="font-semibold text-gray-900 mb-4">Interested? Make an Inquiry</h3>
+                <form method="post" action="{% url 'marketplace:create_inquiry' pk=listing.pk %}" class="space-y-3">
+                    {% csrf_token %}
+                    {% for field in inquiry_form %}
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>{{ field }}{% if field.errors %}<p class="mt-1 text-sm text-red-600">{% for e in field.errors %}{{ e }}{% endfor %}</p>{% endif %}</div>
+                    {% endfor %}
+                    <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-5 rounded-lg">Send Inquiry</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

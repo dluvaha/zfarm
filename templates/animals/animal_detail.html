@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block title %}{{ animal.tag_id }}{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-sm text-gray-500 mb-1"><a href="{% url 'animals:animal_list' %}" class="hover:text-primary-600">Animals</a><span>/</span><span>{{ animal.tag_id }}</span></div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ animal.tag_id }} {% if animal.name %}- {{ animal.name }}{% endif %}</h1>
+            <p class="text-gray-500 mt-1">{{ animal.category.icon }} {{ animal.category }} | {{ animal.breed|default:"No breed" }} | {{ animal.gender|title }} | Age: {{ animal.age_display }}</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'animals:animal_edit' pk=animal.pk %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium py-2 px-4 rounded-lg">Edit</a>
+            <a href="{% url 'animals:animal_delete' pk=animal.pk %}" class="text-red-600 hover:text-red-700 text-sm font-medium py-2 px-4 rounded-lg hover:bg-red-50">Delete</a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-center"><p class="text-2xl font-bold text-primary-600">{{ animal.weight|default:"--" }}</p><p class="text-sm text-gray-500">Weight (kg)</p></div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-center"><p class="text-2xl font-bold text-blue-600">{{ animal.health_records_count }}</p><p class="text-sm text-gray-500">Health Records</p></div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-center"><p class="text-2xl font-bold text-purple-600">{{ animal.production_records.count }}</p><p class="text-sm text-gray-500">Production Logs</p></div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-center"><p class="text-2xl font-bold capitalize {% if animal.status == 'active' %}text-green-600{% elif animal.status == 'sick' %}text-red-600{% else %}text-gray-600{% endif %}">{{ animal.status }}</p><p class="text-sm text-gray-500">Status</p></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="border-b border-gray-200">
+            <nav class="flex -mb-px overflow-x-auto">
+                <button onclick="showTab('health')" class="tab-btn text-sm font-medium px-4 py-3 border-b-2 border-primary-500 text-primary-600 whitespace-nowrap" data-tab="health">Health Records</button>
+                <button onclick="showTab('production')" class="tab-btn text-sm font-medium px-4 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap" data-tab="production">Production</button>
+                <button onclick="showTab('movements')" class="tab-btn text-sm font-medium px-4 py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap" data-tab="movements">Movements</button>
+            </nav>
+        </div>
+
+        <!-- Health Tab -->
+        <div id="tab-health" class="tab-content p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-semibold text-gray-900">Health Records</h3>
+                <button onclick="toggleModal('healthModal')" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium py-2 px-4 rounded-lg inline-flex items-center gap-1">+ Add Record</button>
+            </div>
+            {% if health_records %}
+            <div class="space-y-3">
+                {% for hr in health_records %}
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-xs px-2 py-1 rounded-full {% if hr.record_type == 'vaccination' %}bg-blue-100 text-blue-700{% elif hr.record_type == 'treatment' %}bg-red-100 text-red-700{% elif hr.record_type == 'checkup' %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-700{% endif %} capitalize">{{ hr.record_type }}</span>
+                            <span class="text-sm text-gray-500 ml-2">{{ hr.date|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            {% if hr.cost %}<span class="text-sm font-medium text-gray-700">KES {{ hr.cost }}</span>{% endif %}
+                            {% if hr.next_due_date and hr.is_overdue %}<span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">Overdue</span>{% endif %}
+                        </div>
+                    </div>
+                    {% if hr.vet_name %}<p class="text-sm text-gray-600 mt-2">Vet: {{ hr.vet_name }}</p>{% endif %}
+                    {% if hr.diagnosis %}<p class="text-sm text-gray-600 mt-1"><strong>Diagnosis:</strong> {{ hr.diagnosis }}</p>{% endif %}
+                    {% if hr.treatment %}<p class="text-sm text-gray-600 mt-1"><strong>Treatment:</strong> {{ hr.treatment }}</p>{% endif %}
+                    {% if hr.medicine %}<p class="text-sm text-gray-600 mt-1"><strong>Medicine:</strong> {{ hr.medicine }}</p>{% endif %}
+                    {% if hr.next_due_date %}<p class="text-sm text-gray-500 mt-1">Next due: {{ hr.next_due_date|date:"M d, Y" }}</p>{% endif %}
+                    <div class="flex gap-2 mt-2">
+                        <a href="{% url 'animals:health_edit' pk=animal.pk hk=hr.pk %}" class="text-sm text-primary-600 hover:text-primary-700">Edit</a>
+                        <form method="post" action="{% url 'animals:health_delete' pk=animal.pk hk=hr.pk %}" class="inline"><button type="submit" class="text-sm text-red-600 hover:text-red-700">Delete</button>{% csrf_token %}</form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}<p class="text-gray-500 text-center py-8">No health records yet.</p>{% endif %}
+        </div>
+
+        <!-- Production Tab -->
+        <div id="tab-production" class="tab-content p-6 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-semibold text-gray-900">Production Records</h3>
+                <button onclick="toggleModal('productionModal')" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium py-2 px-4 rounded-lg inline-flex items-center gap-1">+ Add Record</button>
+            </div>
+            {% if production_records %}
+            <div class="space-y-3">
+                {% for pr in production_records %}
+                <div class="p-4 bg-gray-50 rounded-lg flex items-center justify-between">
+                    <div>
+                        <span class="text-xs px-2 py-1 rounded-full {% if pr.record_type == 'milk' %}bg-blue-100 text-blue-700{% elif pr.record_type == 'eggs' %}bg-yellow-100 text-yellow-700{% else %}bg-green-100 text-green-700{% endif %} capitalize">{{ pr.record_type }}</span>
+                        <span class="text-sm text-gray-500 ml-2">{{ pr.date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="font-semibold text-gray-800">{{ pr.quantity }} {% if pr.record_type == 'milk' %}L{% elif pr.record_type == 'eggs' %}pcs{% else %}kg{% endif %}</span>
+                        <form method="post" action="{% url 'animals:production_delete' pk=animal.pk rk=pr.pk %}" class="inline"><button type="submit" class="text-red-600 hover:text-red-700 text-sm">Delete</button>{% csrf_token %}</form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}<p class="text-gray-500 text-center py-8">No production records yet.</p>{% endif %}
+        </div>
+
+        <!-- Movements Tab -->
+        <div id="tab-movements" class="tab-content p-6 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-semibold text-gray-900">Movement History</h3>
+                <button onclick="toggleModal('movementModal')" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium py-2 px-4 rounded-lg inline-flex items-center gap-1">+ Record Movement</button>
+            </div>
+            {% if movements %}
+            <div class="space-y-3">
+                {% for mv in movements %}
+                <div class="p-4 bg-gray-50 rounded-lg flex items-center justify-between">
+                    <div>
+                        <span class="text-xs px-2 py-1 rounded-full {% if mv.movement_type == 'purchased' %}bg-green-100 text-green-700{% elif mv.movement_type == 'sold' %}bg-blue-100 text-blue-700{% elif mv.movement_type == 'died' %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-700{% endif %} capitalize">{{ mv.movement_type }}</span>
+                        <span class="text-sm text-gray-500 ml-2">{{ mv.date|date:"M d, Y" }}</span>
+                        {% if mv.from_location %}<p class="text-sm text-gray-500 mt-1">From: {{ mv.from_location }}</p>{% endif %}
+                        {% if mv.to_location %}<p class="text-sm text-gray-500">To: {{ mv.to_location }}</p>{% endif %}
+                    </div>
+                    {% if mv.price %}<span class="font-semibold text-gray-800">KES {{ mv.price }}</span>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}<p class="text-gray-500 text-center py-8">No movement records.</p>{% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Health Modal -->
+<div id="healthModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4"><h3 class="text-lg font-semibold">Add Health Record</h3><button onclick="toggleModal('healthModal')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div>
+            <form method="post" action="{% url 'animals:health_create' pk=animal.pk %}" class="space-y-3">
+                {% csrf_token %}{% for field in health_form %}<div><label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+                <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-5 rounded-lg w-full">Save Record</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Production Modal -->
+<div id="productionModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4"><h3 class="text-lg font-semibold">Add Production Record</h3><button onclick="toggleModal('productionModal')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div>
+            <form method="post" action="{% url 'animals:production_create' pk=animal.pk %}" class="space-y-3">
+                {% csrf_token %}{% for field in production_form %}<div><label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+                <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-5 rounded-lg w-full">Save Record</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Movement Modal -->
+<div id="movementModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4"><h3 class="text-lg font-semibold">Record Movement</h3><button onclick="toggleModal('movementModal')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div>
+            <form method="post" action="{% url 'animals:movement_create' pk=animal.pk %}" class="space-y-3">
+                {% csrf_token %}{% for field in movement_form %}<div><label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+                <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2.5 px-5 rounded-lg w-full">Save Movement</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(el => { el.classList.remove('border-primary-500','text-primary-600'); el.classList.add('border-transparent','text-gray-500'); });
+    document.getElementById('tab-' + name).classList.remove('hidden');
+    document.querySelector(`[data-tab="${name}"]`).classList.add('border-primary-500','text-primary-600');
+    document.querySelector(`[data-tab="${name}"]`).classList.remove('border-transparent','text-gray-500');
+}
+function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
+</script>
+{% endblock %}
+{% endblock %}

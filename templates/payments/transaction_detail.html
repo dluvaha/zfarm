@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Transaction Detail{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6"><h1 class="text-2xl font-bold text-gray-900">Transaction Detail</h1></div>
+    <div class="card">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+            <div>
+                <p class="text-sm text-gray-500">Receipt Number</p>
+                <p class="text-xl font-bold text-gray-900">{{ transaction.mpesa_receipt|default:"Pending..." }}</p>
+            </div>
+            <span class="text-xs px-3 py-1.5 rounded-full {% if transaction.status == 'success' %}bg-green-100 text-green-700{% elif transaction.status == 'pending' %}bg-yellow-100 text-yellow-700{% else %}bg-red-100 text-red-700{% endif %} capitalize text-base">{{ transaction.status }}</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="p-4 bg-gray-50 rounded-lg"><p class="text-xs text-gray-500 uppercase">Amount</p><p class="text-lg font-bold {% if transaction.is_expense %}text-red-600{% else %}text-green-600{% endif %}">KES {{ transaction.amount }}</p></div>
+            <div class="p-4 bg-gray-50 rounded-lg"><p class="text-xs text-gray-500 uppercase">Type</p><p class="text-sm font-medium text-gray-900 mt-1 capitalize">{{ transaction.get_transaction_type_display }}</p></div>
+            <div class="p-4 bg-gray-50 rounded-lg"><p class="text-xs text-gray-500 uppercase">Purpose</p><p class="text-sm font-medium text-gray-900 mt-1 capitalize">{{ transaction.get_purpose_display|default:transaction.purpose }}</p></div>
+            <div class="p-4 bg-gray-50 rounded-lg"><p class="text-xs text-gray-500 uppercase">Phone Number</p><p class="text-sm font-medium text-gray-900 mt-1">{{ transaction.phone_number }}</p></div>
+            <div class="p-4 bg-gray-50 rounded-lg"><p class="text-xs text-gray-500 uppercase">Direction</p><p class="text-sm font-medium mt-1 {% if transaction.is_expense %}text-red-600{% else %}text-green-600{% endif %}">{{ transaction.is_expense|yesno:"Expense,Income" }}</p></div>
+            <div class="p-4 bg-gray-50 rounded-lg"><p class="text-xs text-gray-500 uppercase">Date</p><p class="text-sm font-medium text-gray-900 mt-1">{{ transaction.created_at|date:"M d, Y H:i" }}</p></div>
+        </div>
+        {% if transaction.description %}<div class="mt-4 p-4 bg-gray-50 rounded-lg"><p class="text-xs text-gray-500 uppercase mb-1">Description</p><p class="text-sm text-gray-700">{{ transaction.description }}</p></div>{% endif %}
+        {% if transaction.result_desc %}<div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200"><p class="text-xs text-yellow-700 uppercase mb-1">Result</p><p class="text-sm text-yellow-800">{{ transaction.result_desc }}</p></div>{% endif %}
+    </div>
+</div>
+{% endblock %}
