@@ -6,7 +6,6 @@ from analytics.views import dashboard as landing_dashboard
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('admin/', admin.site.urls),
     path('', landing_dashboard, name='home'),
     path('dashboard/', landing_dashboard, name='dashboard'),
 

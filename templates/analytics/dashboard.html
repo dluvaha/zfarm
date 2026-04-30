@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Farm Dashboard</h1>
+        <p class="text-gray-500 mt-1">Welcome back, {{ user.first_name|default:user.username }}! Here's your farm overview.</p>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center hover:shadow-md transition-shadow">
+            <div class="text-2xl mb-1">🐄</div>
+            <p class="text-2xl font-bold text-gray-900">{{ active_animals }}</p>
+            <p class="text-xs text-gray-500">Active Animals</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center hover:shadow-md transition-shadow">
+            <div class="text-2xl mb-1">🏥</div>
+            <p class="text-2xl font-bold text-gray-900">{{ sick_animals }}</p>
+            <p class="text-xs text-gray-500">Sick Animals</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center hover:shadow-md transition-shadow">
+            <div class="text-2xl mb-1">🥛</div>
+            <p class="text-2xl font-bold text-gray-900">{{ today_milk }}L</p>
+            <p class="text-xs text-gray-500">Milk Today</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center hover:shadow-md transition-shadow">
+            <div class="text-2xl mb-1">🥚</div>
+            <p class="text-2xl font-bold text-gray-900">{{ today_eggs }}</p>
+            <p class="text-xs text-gray-500">Eggs Today</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center hover:shadow-md transition-shadow">
+            <div class="text-2xl mb-1">💰</div>
+            <p class="text-2xl font-bold {% if month_net >= 0 %}text-green-600{% else %}text-red-600{% endif %}">KES {{ month_net|floatformat:0 }}</p>
+            <p class="text-xs text-gray-500">Net (This Month)</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center hover:shadow-md transition-shadow">
+            <div class="text-2xl mb-1">🏪</div>
+            <p class="text-2xl font-bold text-gray-900">{{ active_listings }}</p>
+            <p class="text-xs text-gray-500">Active Listings</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Monthly Finance -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-900">Monthly Finance</h3>
+                <a href="{% url 'payments:finance_summary' %}" class="text-sm text-primary-600 hover:text-primary-700 font-medium">View All</a>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="p-4 bg-green-50 rounded-lg">
+                    <p class="text-xs text-green-600 uppercase">Income This Month</p>
+                    <p class="text-xl font-bold text-green-700">KES {{ month_income|floatformat:0 }}</p>
+                </div>
+                <div class="p-4 bg-red-50 rounded-lg">
+                    <p class="text-xs text-red-600 uppercase">Expenses This Month</p>
+                    <p class="text-xl font-bold text-red-700">KES {{ month_expenses|floatformat:0 }}</p>
+                </div>
+            </div>
+            {% if recent_transactions %}
+            <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Transactions</h4>
+            <div class="space-y-2">
+                {% for txn in recent_transactions %}
+                <a href="{% url 'payments:transaction_detail' pk=txn.pk %}" class="flex items-center justify-between py-2 px-2 -mx-2 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ txn.get_purpose_display|default:txn.purpose }}</p>
+                        <p class="text-xs text-gray-500">{{ txn.created_at|date:"M d, Y" }}</p>
+                    </div>
+                    <span class="text-sm font-semibold {% if txn.is_expense %}text-red-600{% else %}text-green-600{% endif %}">KES {{ txn.amount }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">No transactions yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Health Alerts -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-900">Health Alerts</h3>
+                <a href="{% url 'animals:animal_list' %}" class="text-sm text-primary-600 hover:text-primary-700 font-medium">View All</a>
+            </div>
+            {% if overdue_records %}
+            <div class="space-y-2">
+                {% for rec in overdue_records %}
+                <div class="p-3 bg-red-50 rounded-lg border border-red-100">
+                    <div class="flex items-center gap-2">
+                        <span class="text-red-500">⚠️</span>
+                        <p class="text-sm font-medium text-red-800">{{ rec.animal.tag_id }} - {{ rec.get_record_type_display }}</p>
+                    </div>
+                    <p class="text-xs text-red-600 mt-1">Was due: {{ rec.next_due_date|date:"M d, Y" }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <span class="text-3xl block mb-2">✅</span>
+                <p class="text-sm text-gray-500">No overdue vaccinations</p>
+            </div>
+            {% endif %}
+
+            <h4 class="text-sm font-medium text-gray-700 mt-6 mb-2">Recent Health Records</h4>
+            {% if recent_health %}
+            <div class="space-y-2">
+                {% for hr in recent_health %}
+                <a href="{% url 'animals:animal_detail' pk=hr.animal.pk %}" class="flex items-center justify-between py-2 px-2 -mx-2 rounded-lg hover:bg-gray-50">
+                    <div><p class="text-sm text-gray-700">{{ hr.animal.tag_id }} - {{ hr.get_record_type_display }}</p><p class="text-xs text-gray-500">{{ hr.date|date:"M d, Y" }}</p></div>
+                    {% if hr.cost %}<span class="text-xs text-gray-500">KES {{ hr.cost }}</span>{% endif %}
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500">No health records yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Animal Categories -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="font-semibold text-gray-900 mb-4">Animal Categories</h3>
+            {% if category_breakdown %}
+            <div class="space-y-3">
+                {% for cat in category_breakdown %}
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-700">{{ cat.category__icon }} {{ cat.category__name }}</span>
+                    <div class="flex items-center gap-2">
+                        <div class="w-24 bg-gray-200 rounded-full h-2">
+                            <div class="bg-primary-500 h-2 rounded-full" style="width: {% widthratio cat.count total_animals 100 %}%"></div>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-900 w-8 text-right">{{ cat.count }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 text-center py-4">No animals yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Feeding Schedules -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-900">Today's Feeding</h3>
+                <a href="{% url 'notifications:schedule_list' %}" class="text-sm text-primary-600 hover:text-primary-700 font-medium">View All</a>
+            </div>
+            {% if feeding_schedules %}
+            <div class="space-y-3">
+                {% for sch in feeding_schedules %}
+                <div class="p-3 bg-yellow-50 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-gray-800">🌾 {{ sch.feed_type }} ({{ sch.quantity }})</p>
+                        {% if sch.time %}<span class="text-xs text-gray-500">{{ sch.time|time:"H:i" }}</span>{% endif %}
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">{% if sch.animal %}{{ sch.animal.tag_id }}{% else %}All{% endif %} | {{ sch.get_frequency_display }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <span class="text-3xl block mb-2">📅</span>
+                <p class="text-sm text-gray-500">No feeding schedules</p>
+                <a href="{% url 'notifications:schedule_create' %}" class="text-sm text-primary-600 hover:text-primary-700 font-medium mt-2 inline-block">Add Schedule</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Quick Actions & Stats -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div class="space-y-2">
+                <a href="{% url 'animals:animal_create' %}" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors">
+                    <span class="text-xl">🐄</span><span class="text-sm font-medium text-gray-700">Add Animal</span>
+                </a>
+                <a href="{% url 'payments:initiate_payment' %}" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors">
+                    <span class="text-xl">💳</span><span class="text-sm font-medium text-gray-700">Make Payment</span>
+                </a>
+                <a href="{% url 'marketplace:listing_create' %}" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors">
+                    <span class="text-xl">🏪</span><span class="text-sm font-medium text-gray-700">Sell on Marketplace</span>
+                </a>
+                <a href="{% url 'marketplace:listing_list' %}" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors">
+                    <span class="text-xl">🛒</span><span class="text-sm font-medium text-gray-700">Browse Marketplace</span>
+                </a>
+                <a href="{% url 'notifications:schedule_create' %}" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors">
+                    <span class="text-xl">📅</span><span class="text-sm font-medium text-gray-700">Add Schedule</span>
+                </a>
+                <a href="{% url 'accounts:farm_create' %}" class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors">
+                    <span class="text-xl">🌾</span><span class="text-sm font-medium text-gray-700">Create Farm</span>
+                </a>
+            </div>
+            {% if deaths_30d > 0 %}
+            <div class="mt-4 p-3 bg-red-50 rounded-lg border border-red-100">
+                <p class="text-sm text-red-700"><strong>⚠️ {{ deaths_30d }} animal death(s)</strong> recorded in the last 30 days.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

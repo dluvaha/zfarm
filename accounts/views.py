@@ -50,7 +50,17 @@ def farmer_logout(request):
 @login_required
 def profile_view(request):
     farmer = request.user
-    return render(request, 'accounts/profile.html', {'farmer': farmer})
+    info_pairs = [
+        ('Phone Number', farmer.phone_number or 'Not set'),
+        ('M-Pesa Number', farmer.mpesa_number or 'Not set'),
+        ('Location', farmer.location or 'Not set'),
+        ('County', farmer.county or 'Not set'),
+        ('Farm Name', farmer.farm_name or 'Not set'),
+        ('Farm Type', farmer.farm_type or 'Not set'),
+        ('ID Number', farmer.id_number or 'Not set'),
+        ('Member Since', farmer.created_at.strftime('%b %d, %Y')),
+    ]
+    return render(request, 'accounts/profile.html', {'farmer': farmer, 'info_pairs': info_pairs})
 
 
 @login_required
