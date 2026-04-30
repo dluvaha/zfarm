@@ -76,10 +76,15 @@ class Animal(models.Model):
         if not self.date_of_birth:
             return "Unknown"
         from django.utils import timezone
-        from dateutil.relativedelta import relativedelta
-        delta = relativedelta(timezone.now().date(), self.date_of_birth)
-        years = delta.years
-        months = delta.months
+        today = timezone.now().date()
+        born = self.date_of_birth
+        years = today.year - born.year
+        months = today.month - born.month
+        if today.day < born.day:
+            months -= 1
+        if months < 0:
+            years -= 1
+            months += 12
         if years > 0:
             return f"{years}y {months}m"
         return f"{months}m"
