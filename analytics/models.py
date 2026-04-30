@@ -1,3 +1,1 @@
-from django.db import models
-
-# Create your models here.
+# Analytics app - no custom models, uses data from other apps
