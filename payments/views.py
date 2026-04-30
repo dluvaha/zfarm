@@ -1,6 +1,7 @@
 import requests
 import base64
-from datetime import datetime
+import calendar
+from datetime import datetime, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -209,8 +210,13 @@ def finance_summary(request):
     # Monthly summary (last 6 months)
     monthly_data = []
     for i in range(5, -1, -1):
-        from dateutil.relativedelta import relativedelta
-        month_date = timezone.now() - relativedelta(months=i)
+        today = timezone.now().date()
+        month = today.month - i
+        year = today.year
+        while month <= 0:
+            month += 12
+            year -= 1
+        month_date = datetime(year, month, 1)
         month_txns = transactions.filter(
             created_at__year=month_date.year,
             created_at__month=month_date.month
